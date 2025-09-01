@@ -1,0 +1,35 @@
+# Laravel specific
+storage/
+bootstrap/cache/
+.env
+.env.*
+!.env.example
+
+# Development files
+node_modules/
+tests/
+.git/
+.gitignore
+README.md
+*.md
+
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+storage/logs/
+
+# Cache
+.cache/
+.parcel-cache/
