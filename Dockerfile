@@ -37,23 +37,34 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files
-COPY composer.json composer.lock ./
+# Copy application code first
+COPY . .
 
-# Install PHP dependencies
+# Install PHP dependencies (including dev dependencies for artisan commands)
+RUN composer install --optimize-autoloader --no-interaction
+
+# Run artisan commands that might need dev dependencies
+RUN php artisan key:generate --no-interaction
+RUN touch database/database.sqlite \
+    && chmod 664 database/database.sqlite \
+    && chown www-data:www-data database/database.sqlite
+RUN php artisan migrate --force
+RUN php artisan db:seed --force
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
+# Remove dev dependencies to reduce image size
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Copy package files for frontend assets
-COPY package.json package-lock.json ./
-
-# Install Node.js dependencies
-RUN npm ci --only=production
-
-# Copy application code
-COPY . .
+# Install Node.js dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Build frontend assets
 RUN npm run build
+
+# Remove dev dependencies to reduce image size
+RUN npm prune --production
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
@@ -62,25 +73,6 @@ RUN chown -R www-data:www-data /var/www/html \
 
 # Create .env file if it doesn't exist
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
-
-# Generate application key
-RUN php artisan key:generate --no-interaction
-
-# Create database file
-RUN touch database/database.sqlite \
-    && chmod 664 database/database.sqlite \
-    && chown www-data:www-data database/database.sqlite
-
-# Run migrations
-RUN php artisan migrate --force
-
-# Seed database
-RUN php artisan db:seed --force
-
-# Optimize for production
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
 
 # Production stage
 FROM php:8.2-fpm-alpine AS production
@@ -94,21 +86,13 @@ RUN apk add --no-cache \
     freetype \
     libjpeg-turbo \
     libzip \
+    zlib \
     nginx \
     supervisor
 
-# Install PHP extensions for production
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
-    pdo \
-    pdo_sqlite \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
-    gd \
-    zip \
-    xml
+# Copy PHP extensions from base stage
+COPY --from=base /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
+COPY --from=base /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 
 # Copy application from build stage
 COPY --from=base /var/www/html /var/www/html

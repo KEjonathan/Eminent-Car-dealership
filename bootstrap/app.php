@@ -21,6 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withProviders([
         \App\Providers\PortRouteServiceProvider::class,
-        \Laravel\Pail\PailServiceProvider::class,
+        // PailServiceProvider removed for Docker production build
     ])
     ->create();
