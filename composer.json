@@ -36,7 +36,7 @@
         }
     },
     "scripts": {
-        "build": "npm build --output public",
+        "build": "npm build --output public/dist",
         "post-autoload-dump": [
             "@php -r \"if (file_exists('artisan')) { system('php artisan config:clear'); system('php artisan clear-compiled'); system('php artisan package:discover --ansi'); }\""
         ],
