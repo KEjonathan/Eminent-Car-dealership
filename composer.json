@@ -3,7 +3,10 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
@@ -33,6 +36,7 @@
         }
     },
     "scripts": {
+        "build": "npm build --output public",
         "post-autoload-dump": [
             "@php -r \"if (file_exists('artisan')) { system('php artisan config:clear'); system('php artisan clear-compiled'); system('php artisan package:discover --ansi'); }\""
         ],
