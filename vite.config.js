@@ -10,5 +10,7 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
-    outDir: 'dist',
+    build: {
+        outDir: 'dist',
+    },
 });
